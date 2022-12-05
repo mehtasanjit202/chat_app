@@ -1,26 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class addtodo extends StatefulWidget {
-  const addtodo({super.key});
+class AddToDo extends StatefulWidget {
+  final String? documentId;
+  final String? title;
+
+  const AddToDo({super.key, this.documentId, this.title});
 
   @override
-  State<addtodo> createState() => _addtodoState();
+  State<AddToDo> createState() => _AddToDoState();
 }
 
-final TextEditingController _fieldcontroler = TextEditingController();
-final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
+class _AddToDoState extends State<AddToDo> {
+  final user = FirebaseAuth.instance.currentUser;
+  final TextEditingController _editingController = TextEditingController();
+  final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
 
-class _addtodoState extends State<addtodo> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.title != null) {
+      _editingController.text = widget.title!;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Addtodo"),
+        title: Text(widget.documentId == null ? "Add" : "Update"),
       ),
       body: Form(
           key: _formkey,
@@ -28,24 +37,36 @@ class _addtodoState extends State<addtodo> {
             children: [
               TextFormField(
                 validator: (value) {
-                  if (value != null && value.length > 0) {
+                  if (value != null && value.length > 1) {
                     return null;
                   } else {
                     return "Please enter atleast one task";
                   }
                 },
-                controller: _fieldcontroler,
+                controller: _editingController,
               ),
               ElevatedButton(
                   onPressed: () async {
                     if (_formkey.currentState!.validate()) {
-                      await FirebaseFirestore.instance
-                          .collection("todos")
-                          .add({"name": _fieldcontroler.text});
-                      Navigator.pop(context);
+                      // final
+                      if (widget.documentId == null) {
+                        await FirebaseFirestore.instance
+                            .collection("todos")
+                            .add({
+                          "name": _editingController.text,
+                          "created_by": user!.uid,
+                        });
+                      } else {
+                        await FirebaseFirestore.instance
+                            .collection("todos")
+                            .doc(widget.documentId)
+                            .update({"name": _editingController.text});
+                      }
+
+                      Navigator.of(context).pop();
                     }
                   },
-                  child: const Text("Add"))
+                  child: Text(widget.documentId != null ? "add" : "Add"))
             ],
           )),
     );

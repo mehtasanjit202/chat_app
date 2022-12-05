@@ -1,12 +1,9 @@
-
-
 import 'package:chatapp/auth/signup_screen.dart';
+import 'package:chatapp/chat/chat_srcreen.dart';
 import 'package:chatapp/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../Homepage/Home_page.dart';
 import '../utils/snacks.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,20 +12,23 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-  bool _isObscure=true;
+
+bool _isObscure = true;
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
 
-
   _loginUser(String email, String password) async {
     try {
       final result = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
       if (result.user != null) {
-        Navigator.of(AppSetting.navigatorKey.currentContext!).pushAndRemoveUntil( MaterialPageRoute(builder: (context) => const Homepage()),(route)=> false);
+        Navigator.of(AppSetting.navigatorKey.currentContext!)
+            .pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const Chatscreen()),
+                (route) => false);
         showSuccessSnacks("Logged In successfully");
       } else {
         showErrorSnacks("Something went Wrong");
@@ -44,16 +44,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text('Login'),
       ),
       body: Form(
-         key: _loginFormKey,
+        key: _loginFormKey,
         child: Column(
-         
           children: [
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(
+                  labelText: "Email", hintText: " Enter Email"),
               validator: (value) {
                 if (value != null &&
                     RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
@@ -67,12 +68,17 @@ class _LoginScreenState extends State<LoginScreen> {
             TextFormField(
               obscureText: _isObscure,
               controller: _passwordController,
-              decoration:  InputDecoration(labelText: "Password",suffixIcon: IconButton(onPressed: (){setState(() {
-                _isObscure?_isObscure=false:_isObscure=true;
-                
-              });
-              }, icon: const Icon(Icons.remove_red_eye)
-              ),
+              decoration: InputDecoration(
+                labelText: "Password",
+                hintText: " password",
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isObscure ? _isObscure = false : _isObscure = true;
+                    });
+                  },
+                  icon: const Icon(Icons.remove_red_eye),
+                ),
               ),
               validator: (value) {
                 {
